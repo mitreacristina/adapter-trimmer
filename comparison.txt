@@ -1,0 +1,68 @@
+# Cuadapt cuts the adaptor sequence and all that follows, which is our update to the script does and the comparison of reads_cutadapt.fastq to reads_trimmed_full.fastq shows.
+# Cutadapt trims the read sequence lines and the read quality score line correspondigly.
+# Cutadapt also does a partial match, if at the end of the read sequence line there was a partial match to the beginning of the adaptor sequence (e.g. AGAT) then that partial match will be cut, and so will the corresponding characters in the quality score line.
+
+# How many times does the adaptor sequence appear in the initial fastq file?
+# Grep finds the match, -o puts each match on a new line, wc -l counts the lines.
+
+grep -o "AGATCGGAAGAGC" reads.fastq | wc -l
+
+# result: 2
+
+# Here are the diff commands and their output that support the above claims.
+
+
+# cutting only the adaptor:
+
+diff reads_cutadapt.fastq reads_trimmed.fastq 
+
+# 14c14
+# < CATAAACATATGTACGTGCGAAGGGCAGAGAATTGGAG
+# ---
+# > CATAAACATATGTACGTGCGAAGGGCAGAGAATTGGAG__ACACGTCTGAACTC
+# 16c16
+# < AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ
+# ---
+# > AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ
+# 26c26
+# < CCCGCGTAAACTTTAGTGATTCACCCTTCAGTGGGGCTAGGTTTTCCAACCACAACTATGG
+# ---
+# > CCCGCGTAAACTTTAGTGATTCACCCTTCAGTGGGGCTAGGTTTTCCAACCACAACTATGGAGAT
+# 28c28
+# < AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJJJJJJJJJJJJ
+# ---
+# > AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJJJJJJJJJJJJJJJJ
+# 30c30
+# < TTTCGAGGGCCACAATCTCGGTGAACTGATC
+# ---
+# > TTTCGAGGGCCACAATCTCGGTGAACTGATC__ACACGTCTGAACTCCAGTCAC
+# 32c32
+# < AAFA<JAAJFA<FJJJJAAJAJ<JJJJJJA-
+# ---
+# > AAFA<JAAJFA<FJJJJAAJAJ<JJJJJJA-A-A7AFFFJF<JJJJJJJJ<FJJJJFFFAAJAFA
+
+# cutting adaptor and what follows - still just on the sequence line
+# differences only in the quality score lines and one sequence line because of the partial match
+
+diff reads_cutadapt.fastq reads_trimmed_full.fastq
+
+# 16c16
+# < AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ
+# ---
+# > AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ
+# 26c26
+# < CCCGCGTAAACTTTAGTGATTCACCCTTCAGTGGGGCTAGGTTTTCCAACCACAACTATGG
+# ---
+# > CCCGCGTAAACTTTAGTGATTCACCCTTCAGTGGGGCTAGGTTTTCCAACCACAACTATGGAGAT
+# 28c28
+# < AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJJJJJJJJJJJJ
+# ---
+# > AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJJJJJJJJJJJJJJJJ
+# 32c32
+# < AAFA<JAAJFA<FJJJJAAJAJ<JJJJJJA-
+# ---
+# > AAFA<JAAJFA<FJJJJAAJAJ<JJJJJJA-A-A7AFFFJF<JJJJJJJJ<FJJJJFFFAAJAFA
+
+
+# We can look in the documentation of cutadapt to find out the details of the partial match.
+# To implement it we would have to iteratively search for partial matches at the end of the line, reducing the size of the adaptor each time..
