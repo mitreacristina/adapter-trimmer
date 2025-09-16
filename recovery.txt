@@ -1,0 +1,148 @@
+# This file keeps track of all the commands made if simulating a mistake on the repo adapter-trimming 
+# The script file will be overwritten using the following command:
+
+echo "broken script" > trim_adapter.sh
+
+# Then the change will be staged:
+
+git add trim_adapter.sh
+
+# and committed
+
+git commit -m "Changed script trim_adapter.sh - overwrite with text 'broken script'"
+
+# pushed the change to the GitHub repo
+
+git push
+
+# now we delete the file 
+
+rm trim_adapter.sh
+
+# stage the change
+
+git add trim_adapter.sh
+
+
+# check the status
+
+git status
+
+# result of checking the status:
+# -------
+# On branch main
+# Your branch is up to date with 'origin/main'.
+
+# Changes to be committed:
+#   (use "git restore --staged <file>..." to unstage)
+# 	deleted:    trim_adapter.sh
+# -------
+
+
+# unstage the change to the file 
+
+git restore --staged trim_adapter.sh
+
+# check the status
+
+git status
+
+# result of checking the status:
+# -------
+# On branch main
+# Your branch is up to date with 'origin/main'.
+
+# Changes not staged for commit:
+#   (use "git add/rm <file>..." to update what will be committed)
+#   (use "git restore <file>..." to discard changes in working directory)
+#	deleted:    trim_adapter.sh
+
+# no changes added to commit (use "git add" and/or "git commit -a")
+# -------
+
+# restore the file to the version of the last commit
+
+git restore trim_adapter.sh
+
+git status
+
+# result of checking the status:
+# -------
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+# -------
+
+# check the repo history/log
+
+git log --onleline
+
+# result of checking the log:
+# -------
+# 5d068d6 (HEAD -> main, origin/main, origin/HEAD) Changed script trim_adapter.sh - overwrite with text 'broken script'
+# 971f1c6 Added the script to trim/remove an adapter sequence from a fastq file. Added test files too and the result of trimming the adapter AGATCGGAAGAGC from the reads.fastq file.
+# 4a19eb9 Update README.md with detailed description.
+# eb64ae5 Initial commit
+# -------
+
+# display the content of the script file 
+
+cat trim_adapter.sh
+             
+# result of displaying the contents of the script file:
+# -------
+broken script
+# -------
+
+# recover the file 
+# first get the commit id where the script file had the code to trim adapters:
+# git log --oneline give the git history with one commit per line
+# grep will search for the line that contains "remove an adapter" 
+# -that is in the commot message for the  working script
+# awk will print the first word ($1) on that line - delimiter is whitespace
+
+git log --oneline | grep "remove an adapter" | awk '{print $1}'
+
+# result:
+# 971f1c6
+
+# use the commit id to retrive the version of the script file from that commit
+
+git checkout 971f1c6 trim_adapter.sh
+
+# use git diff to make sure it is that version
+
+git diff 971f1c6 trim_adapter.sh
+
+# visually inspect the script
+
+cat trim_adapter.sh
+
+# run it to make sure it does the correct thing
+
+bash trim_adapter.sh reads.fastq AGATCGGAAGAGC                                  
+
+# result of running the script:
+# ----------
+# Removing AGATCGGAAGAGC from reads.fastq and saving the results in reads_trimmed.fastq.
+# I replace AGATCGGAAGAGC with __ just to see where the replacement happens.
+# Done removing AGATCGGAAGAGC from reads.fastq. Please check reads_trimmed.fastq.
+# Here are the differences between reads.fastq and reads_trimmed.fastq.
+# 14c14
+# <     14	CATAAACATATGTACGTGCGAAGGGCAGAGAATTGGAGAGATCGGAAGAGCACACGTCTGAACTC
+# ---
+# >     14	CATAAACATATGTACGTGCGAAGGGCAGAGAATTGGAG__ACACGTCTGAACTC
+# 30c30
+# <     30	TTTCGAGGGCCACAATCTCGGTGAACTGATCAGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
+# ---
+#>     30	TTTCGAGGGCCACAATCTCGGTGAACTGATC__ACACGTCTGAACTCCAGTCAC
+#------------
+
+# commit the change - it already staged
+
+git commit -m "Restored the script"
+
+# push the change to GitHub
+
+git push
